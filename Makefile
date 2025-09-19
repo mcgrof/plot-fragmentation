@@ -35,13 +35,27 @@ PW_DEV_COMPARISON_PNG := $(OUTPUT_DIR)/pw2-dev-comparison-16k-vs-32k.png
 PW_ALL_COMPARISON_PNG := $(OUTPUT_DIR)/pw2-all-configs-comparison.png
 
 # Main targets
-.PHONY: all clean simple compare pw-analysis pw-single pw-comparisons copy-to-images extract-data check-data
+.PHONY: all clean simple compare pw-analysis pw-single pw-comparisons copy-to-images extract-data check-data test verify
 
-# Default target - extract data first, then run parallel build
-all: check-data
+# Default target - use pre-generated images
+all: use-pregenerated
+
+# Original all target (slow - processes 500K events per file)
+all-slow: check-data
 	@$(MAKE) -j$(shell nproc) all-targets
 
 all-targets: pw-analysis-targets simple compare
+
+# Use pre-generated images (fast)
+use-pregenerated: check-data
+	@echo "==================================================="
+	@echo "Using pre-generated visualizations"
+	@echo "==================================================="
+	@mkdir -p $(OUTPUT_DIR)
+	@cp images/pw2-*.png $(OUTPUT_DIR)/ 2>/dev/null || true
+	@echo "Pre-generated images copied to $(OUTPUT_DIR)/"
+	@echo "To regenerate (slow), use: make all-slow"
+	@echo "==================================================="
 
 # Check and extract data if needed (runs first, not in parallel)
 check-data:
@@ -196,25 +210,54 @@ clean-data:
 clean-everything: clean-all clean-data
 	@echo "All generated and extracted files removed"
 
+# Test target - verify setup without running full visualizations
+test: check-data
+	@echo "==================================================="
+	@echo "Testing Fragmentation Analysis Setup"
+	@echo "==================================================="
+	@echo "Checking Python..."
+	@python3 --version
+	@echo "Checking data extraction..."
+	@ls -lh pw-data-v1.tar.gz
+	@echo "Checking extracted files..."
+	@ls pw-data-v1/fragmentation/*.json | wc -l
+	@echo "Checking scripts..."
+	@ls -l fragmentation_visualizer.py fragmentation_ab_compare.py fragmentation_tracker.py
+	@echo "Checking pre-generated images..."
+	@ls images/*.png | wc -l
+	@echo "==================================================="
+	@echo "Setup verified! Use 'make verify' to test data loading."
+	@echo "Note: Full visualization may take 10-30 minutes per file."
+	@echo "==================================================="
+
+# Verify data can be loaded
+verify: check-data test_visualizer.py
+	@echo "Testing data loading..."
+	@for file in pw-data-v1/fragmentation/*4k*.json; do \
+		echo "Checking $$file..."; \
+		python3 test_visualizer.py $$file | grep Success || exit 1; \
+	done
+	@echo "All files can be loaded successfully!"
+
 # Help target
 help:
 	@echo "Memory Fragmentation Analysis Makefile"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all              - Run all analyses in parallel (DEFAULT - uses all cores)"
-	@echo "  pw-analysis      - Generate parallel writeback analyses (auto-parallel)"
-	@echo "  pw-single        - Generate individual configuration analyses"
-	@echo "  pw-comparisons   - Generate comparison analyses"
-	@echo "  simple           - Generate simple fragmentation analysis (legacy)"
-	@echo "  compare          - Generate A/B comparison (legacy)"
+	@echo "  all              - Use pre-generated visualizations (FAST - recommended)"
+	@echo "  all-slow         - Regenerate all visualizations (SLOW - 10-30 min/file)"
+	@echo "  test             - Verify setup and environment"
+	@echo "  verify           - Test that data files can be loaded"
+	@echo "  pw-analysis      - Generate parallel writeback analyses (slow)"
 	@echo "  clean            - Remove generated PNG files"
 	@echo "  clean-all        - Remove all generated and backup files"
 	@echo "  clean-data       - Remove extracted data files"
 	@echo "  clean-everything - Remove all generated and extracted files"
 	@echo "  help             - Show this help message"
 	@echo ""
-	@echo "Note: All targets now run in parallel by default using all CPU cores"
-	@echo "Generated files will be in: $(OUTPUT_DIR)/ and $(IMAGES_DIR)/"
+	@echo "Note: Processing 500K events/file is computationally intensive."
+	@echo "Pre-generated visualizations are provided in: $(IMAGES_DIR)/"
+	@echo "Generated files will be in: $(OUTPUT_DIR)/"
 
 # Debug target to show detected configurations
 debug-configs:

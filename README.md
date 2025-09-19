@@ -60,13 +60,20 @@ The `fragmentation_tracker.py` is an eBPF script which tracks all tracepoints wi
 Just run:
 
 ```bash
-make
+make         # Fast - uses pre-generated visualizations
+make test    # Verify setup is working correctly
 ```
 
-This will:
-1. Automatically extract data from `pw-data-v1.tar.gz` (if needed)
-2. Generate all visualizations using **all available CPU cores** in parallel
-3. Copy results to the `images/` directory
+For regenerating visualizations (slow - 10-30 minutes per file):
+
+```bash
+make all-slow   # Regenerate all from scratch (very slow)
+```
+
+The default `make` will:
+1. Extract data from `pw-data-v1.tar.gz` (if needed)
+2. Copy pre-generated visualizations to `output/` directory
+3. Complete instantly without heavy processing
 
 For specific analyses:
 

@@ -78,6 +78,8 @@ make compare      # Run only A/B comparison demo
 
 **Note**: All targets now run in parallel by default using all CPU cores for maximum speed. The data is automatically extracted from the compressed archive on first run to stay within GitHub's file size limits.
 
+**Performance Note**: The pw-data-v1 files contain ~500K events each, which may take significant time to process (several minutes per file). The visualizer handles this gracefully but requires patience for the full analysis.
+
 ## 📈 Visualization Output
 
 ![Fragmentation Comparison](images/fragmentation_comparison.png)

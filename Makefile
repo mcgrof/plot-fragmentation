@@ -35,13 +35,22 @@ PW_DEV_COMPARISON_PNG := $(OUTPUT_DIR)/pw2-dev-comparison-16k-vs-32k.png
 PW_ALL_COMPARISON_PNG := $(OUTPUT_DIR)/pw2-all-configs-comparison.png
 
 # Main targets
-.PHONY: all clean simple compare pw-analysis pw-single pw-comparisons copy-to-images extract-data
+.PHONY: all clean simple compare pw-analysis pw-single pw-comparisons copy-to-images extract-data check-data
 
-# Default to parallel execution using all cores
-all:
-	@$(MAKE) -j$(shell nproc) all-sequential
+# Default target - extract data first, then run parallel build
+all: check-data
+	@$(MAKE) -j$(shell nproc) all-targets
 
-all-sequential: simple compare pw-analysis
+all-targets: pw-analysis-targets simple compare
+
+# Check and extract data if needed (runs first, not in parallel)
+check-data:
+	@if [ ! -f $(PW_DATA_DIR)/pw2-xfs-reflink-4k_fragmentation_data_interim.json ]; then \
+		echo "Extracting data from $(PW_DATA_ARCHIVE)..."; \
+		mkdir -p $(PW_DATA_DIR); \
+		tar -xzf $(PW_DATA_ARCHIVE) -C $(PW_DATA_DIR); \
+		echo "Data extracted successfully"; \
+	fi
 
 # Legacy targets for backward compatibility
 simple:
@@ -71,23 +80,23 @@ extract-data:
 		echo "Data already extracted"; \
 	fi
 
-# Main parallel writeback analysis target (already parallel by default)
-pw-analysis:
-	@$(MAKE) -j$(shell nproc) pw-analysis-sequential
+# Main parallel writeback analysis target
+pw-analysis: check-data
+	@$(MAKE) -j$(shell nproc) pw-analysis-targets
 
-pw-analysis-sequential: extract-data pw-single pw-comparisons copy-to-images
+pw-analysis-targets: pw-single pw-comparisons copy-to-images
 	@echo "==================================================="
 	@echo "Parallel Writeback Analysis Complete!"
 	@echo "Generated visualizations in: $(OUTPUT_DIR)/"
 	@echo "Copied to: $(IMAGES_DIR)/"
 	@echo "==================================================="
 
-# Generate all single configuration analyses (runs in parallel by default)
-pw-single: extract-data $(PW_SINGLE_PNGS)
+# Generate all single configuration analyses
+pw-single: $(PW_SINGLE_PNGS)
 	@echo "Single configuration analyses complete"
 
-# Generate comparison analyses (runs in parallel by default)
-pw-comparisons: extract-data $(PW_4K_VS_16K_PNG) $(PW_4K_VS_32K_PNG) $(PW_16K_VS_32K_PNG) $(PW_DEV_COMPARISON_PNG) $(PW_ALL_COMPARISON_PNG)
+# Generate comparison analyses
+pw-comparisons: $(PW_4K_VS_16K_PNG) $(PW_4K_VS_32K_PNG) $(PW_16K_VS_32K_PNG) $(PW_DEV_COMPARISON_PNG) $(PW_ALL_COMPARISON_PNG)
 	@echo "Comparison analyses complete"
 
 # Create output directory
@@ -106,6 +115,7 @@ copy-to-images:
 $(OUTPUT_DIR)/%_single.png: $(PW_DATA_DIR)/%_fragmentation_data_interim.json $(OUTPUT_DIR)
 	@echo "Generating single analysis for $*..."
 	@$(VISUALIZER) $< -o $@
+
 
 # 4K vs 16K comparison
 $(PW_4K_VS_16K_PNG): $(PW_DATA_DIR)/pw2-xfs-reflink-4k_fragmentation_data_interim.json \

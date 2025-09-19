@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Generated files
+output/
+*.png
+!images/*.png
+
+# Extracted data (uncompressed from tarball)
+pw-data-v1/*.json
+pw-data-v1/*.txt
+pw-data-v1/*.log
+
+# Backup files
+*_old.py
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

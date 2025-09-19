@@ -9,6 +9,14 @@ and essentially we had 0 consensus on how to visualize memory fragmentation.
 
 > **This project** aims at trying to expand on that with tracepoints, eBPF scripts, and matplotlib visualizations to help us get closer to something sensible.
 
+## 🎯 Key Insights from Parallel Writeback Analysis
+
+Our analysis reveals fragmentation patterns across different XFS block sizes under parallel writeback workloads:
+
+![XFS Block Size Comparison](images/pw2-xfs-reflink-4k-vs-32k.png)
+
+The visualizations demonstrate how external fragmentation events, migration patterns, and compaction success rates vary between configurations, providing critical insights for filesystem performance optimization.
+
 We primarily aim at evaluating as a case study, does
 [Large Block Size support on the Linux kernel](https://kernelnewbies.org/KernelProjects/large-block-size)
 create worse memory fragmentation situation for users? Uses of this
@@ -55,9 +63,119 @@ To demo, just run:
 make
 ```
 
+For fast parallel writeback analysis (RECOMMENDED):
+
+```bash
+make fast      # Uses 4 cores in parallel
+# or
+make superfast # Uses all available cores
+# or
+make -j8 pw-analysis  # Specify number of cores
+```
+
+For sequential generation:
+
+```bash
+make pw-analysis
+```
+
+**Note**: The data will be automatically extracted from `pw-data-v1.tar.gz` on first run. This ensures the repository stays within GitHub's file size limits.
+
+This will generate comprehensive visualizations for all configurations in the `pw-data-v1/` directory.
+
 ## 📈 Visualization Output
 
 ![Fragmentation Comparison](images/fragmentation_comparison.png)
+
+## 🚦 Parallel Writeback Analysis
+
+The parallel writeback evaluation tests memory fragmentation patterns across different XFS configurations with varying block sizes. This analysis helps determine whether larger block sizes lead to worse fragmentation under parallel writeback workloads.
+
+### Sample Visualizations
+
+#### XFS 4K vs 16K Block Size Comparison
+![XFS 4K vs 16K Comparison](images/pw2-xfs-reflink-4k-vs-16k.png)
+
+#### XFS 4K vs 32K Block Size Comparison
+![XFS 4K vs 32K Comparison](images/pw2-xfs-reflink-4k-vs-32k.png)
+
+#### XFS 16K vs 32K Block Size Comparison
+![XFS 16K vs 32K Comparison](images/pw2-xfs-reflink-16k-vs-32k.png)
+
+### Individual Configuration Analysis
+
+#### XFS 4K Baseline
+![XFS 4K Single Analysis](images/pw2-xfs-reflink-4k_single.png)
+
+#### XFS 16K Development Kernel
+![XFS 16K Single Analysis](images/pw2-xfs-reflink-16k-4ks-dev_single.png)
+
+#### XFS 32K Stable Kernel
+![XFS 32K Single Analysis](images/pw2-xfs-reflink-32k-4ks_single.png)
+
+### Available Configurations
+
+The `pw-data-v1/` directory contains fragmentation data from the following XFS configurations:
+
+- **XFS 4K**: Baseline 4KB block size configuration
+- **XFS 8K-dev**: 8KB blocks on development kernel
+- **XFS 16K-dev**: 16KB blocks on development kernel
+- **XFS 32K**: 32KB blocks on stable kernel
+- **XFS 32K-dev**: 32KB blocks on development kernel
+
+### Visualization Types
+
+Running `make pw-analysis` generates:
+
+1. **Individual Configuration Analysis** (`output/*_single.png`)
+   - Compaction events timeline
+   - External fragmentation (extfrag) event distribution
+   - Migration pattern heatmap with severity indicators
+   - Per-configuration statistics summary
+
+2. **A/B Comparisons** (`output/pw2-*.png`)
+   - 4K vs 16K block size comparison
+   - 4K vs 32K block size comparison
+   - 16K vs 32K block size comparison
+   - Development kernel comparisons
+   - Statistical comparison tables
+
+### Key Metrics Analyzed
+
+- **External Fragmentation Events**: Page steals vs claims from different migrate types
+- **Migration Patterns**: Tracking migrations between MOVABLE, UNMOVABLE, and RECLAIMABLE zones
+- **Compaction Success Rate**: Percentage of successful vs failed compaction attempts
+- **Fragmentation Severity**: Color-coded indicators showing impact of different migration patterns
+
+### Interpreting Results
+
+The visualizations use the following color coding:
+
+- 🔴 **Red**: Bad migrations (e.g., MOVABLE → UNMOVABLE)
+- 🟢 **Green**: Good migrations (e.g., UNMOVABLE → MOVABLE)
+- 🟡 **Yellow**: Neutral migrations
+- 🔵 **Blue/Orange**: Dataset A vs B in comparison mode
+
+Migration severity indicators:
+- `!!` : Very bad migration pattern (severity ≤ -2)
+- `!`  : Bad migration pattern (severity ≤ -1)
+- `+`  : Good migration pattern (severity ≥ 1)
+- `=`  : Neutral migration pattern
+
+### Generated Outputs
+
+All visualization outputs are saved to the `output/` directory:
+
+```bash
+output/
+├── pw2-xfs-reflink-4k_single.png           # Individual 4K analysis
+├── pw2-xfs-reflink-16k-4ks-dev_single.png  # Individual 16K analysis
+├── pw2-xfs-reflink-32k-4ks_single.png      # Individual 32K analysis
+├── pw2-xfs-reflink-4k-vs-16k.png          # 4K vs 16K comparison
+├── pw2-xfs-reflink-4k-vs-32k.png          # 4K vs 32K comparison
+├── pw2-xfs-reflink-16k-vs-32k.png         # 16K vs 32K comparison
+└── pw2-all-configs-comparison.png          # All configurations overview
+```
 
 ## 🔬 Compaction Tracepoints
 

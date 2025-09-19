@@ -78,7 +78,7 @@ make compare      # Run only A/B comparison demo
 
 **Note**: All targets now run in parallel by default using all CPU cores for maximum speed. The data is automatically extracted from the compressed archive on first run to stay within GitHub's file size limits.
 
-**Performance Note**: The pw-data-v1 files contain ~500K events each, which may take significant time to process (several minutes per file). The visualizer handles this gracefully but requires patience for the full analysis.
+**Performance Note**: The pw-data-v1 files contain ~500K events each, which may take significant time to process (10-30 minutes per file depending on CPU). Pre-generated visualizations are included in the `images/` directory. To regenerate them, ensure you have sufficient time and computational resources.
 
 ## 📈 Visualization Output
 

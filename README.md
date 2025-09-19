@@ -60,20 +60,14 @@ The `fragmentation_tracker.py` is an eBPF script which tracks all tracepoints wi
 Just run:
 
 ```bash
-make         # Fast - uses pre-generated visualizations
+make         # Generate all visualizations (fast mode - samples to 50K events)
 make test    # Verify setup is working correctly
-```
-
-For regenerating visualizations (slow - 10-30 minutes per file):
-
-```bash
-make all-slow   # Regenerate all from scratch (very slow)
 ```
 
 The default `make` will:
 1. Extract data from `pw-data-v1.tar.gz` (if needed)
-2. Copy pre-generated visualizations to `output/` directory
-3. Complete instantly without heavy processing
+2. Generate all visualizations using fast sampling (50K events max per file)
+3. Complete in under 2 minutes using all CPU cores in parallel
 
 For specific analyses:
 
@@ -85,7 +79,7 @@ make compare      # Run only A/B comparison demo
 
 **Note**: All targets now run in parallel by default using all CPU cores for maximum speed. The data is automatically extracted from the compressed archive on first run to stay within GitHub's file size limits.
 
-**Performance Note**: The pw-data-v1 files contain ~500K events each, which may take significant time to process (10-30 minutes per file depending on CPU). Pre-generated visualizations are included in the `images/` directory. To regenerate them, ensure you have sufficient time and computational resources.
+**Performance Note**: The pw-data-v1 files contain ~500K events each. The fast visualizer automatically samples large files to 50K events for quick processing while preserving statistical significance. Full analysis completes in under 2 minutes.
 
 ## 📈 Visualization Output
 

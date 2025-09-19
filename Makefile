@@ -164,7 +164,7 @@ $(PW_DEV_COMPARISON_PNG): $(OUTPUT_DIR)
 $(PW_ALL_COMPARISON_PNG): $(OUTPUT_DIR)
 	@echo "Generating all configurations comparison..."
 	@if [ -f $(AB_COMPARE) ]; then \
-		python3 $(AB_COMPARE) $(PW_DATA_DIR) --output $@; \
+		python3 $(AB_COMPARE) pw-data-v1 --output $@; \
 	else \
 		echo "Using standard comparison for all configs..."; \
 		if [ -f $(PW_DATA_DIR)/pw2-xfs-reflink-4k_fragmentation_data_interim.json ] && \

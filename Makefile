@@ -35,9 +35,13 @@ PW_DEV_COMPARISON_PNG := $(OUTPUT_DIR)/pw2-dev-comparison-16k-vs-32k.png
 PW_ALL_COMPARISON_PNG := $(OUTPUT_DIR)/pw2-all-configs-comparison.png
 
 # Main targets
-.PHONY: all clean simple compare pw-analysis pw-single pw-comparisons copy-to-images fast superfast extract-data
+.PHONY: all clean simple compare pw-analysis pw-single pw-comparisons copy-to-images extract-data
 
-all: simple compare pw-analysis
+# Default to parallel execution using all cores
+all:
+	@$(MAKE) -j$(shell nproc) all-sequential
+
+all-sequential: simple compare pw-analysis
 
 # Legacy targets for backward compatibility
 simple:
@@ -67,31 +71,24 @@ extract-data:
 		echo "Data already extracted"; \
 	fi
 
-# Main parallel writeback analysis target
-pw-analysis: extract-data pw-single pw-comparisons copy-to-images
+# Main parallel writeback analysis target (already parallel by default)
+pw-analysis:
+	@$(MAKE) -j$(shell nproc) pw-analysis-sequential
+
+pw-analysis-sequential: extract-data pw-single pw-comparisons copy-to-images
 	@echo "==================================================="
 	@echo "Parallel Writeback Analysis Complete!"
 	@echo "Generated visualizations in: $(OUTPUT_DIR)/"
 	@echo "Copied to: $(IMAGES_DIR)/"
 	@echo "==================================================="
 
-# Generate all single configuration analyses (can use parallel make)
+# Generate all single configuration analyses (runs in parallel by default)
 pw-single: extract-data $(PW_SINGLE_PNGS)
 	@echo "Single configuration analyses complete"
 
-# Generate comparison analyses (can use parallel make)
+# Generate comparison analyses (runs in parallel by default)
 pw-comparisons: extract-data $(PW_4K_VS_16K_PNG) $(PW_4K_VS_32K_PNG) $(PW_16K_VS_32K_PNG) $(PW_DEV_COMPARISON_PNG) $(PW_ALL_COMPARISON_PNG)
 	@echo "Comparison analyses complete"
-
-# Fast parallel generation (recommended)
-fast:
-	@echo "Running parallel generation with -j4..."
-	@$(MAKE) -j4 pw-analysis
-
-# Very fast parallel generation using all cores
-superfast:
-	@echo "Running parallel generation with all available cores..."
-	@$(MAKE) -j$(shell nproc) pw-analysis
 
 # Create output directory
 $(OUTPUT_DIR):
@@ -196,19 +193,19 @@ help:
 	@echo "Memory Fragmentation Analysis Makefile"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all              - Run all analyses (simple, compare, pw-analysis)"
-	@echo "  fast             - Run parallel writeback analysis with 4 cores (RECOMMENDED)"
-	@echo "  superfast        - Run parallel writeback analysis with all cores"
-	@echo "  pw-analysis      - Generate all parallel writeback analyses (sequential)"
+	@echo "  all              - Run all analyses in parallel (DEFAULT - uses all cores)"
+	@echo "  pw-analysis      - Generate parallel writeback analyses (auto-parallel)"
 	@echo "  pw-single        - Generate individual configuration analyses"
 	@echo "  pw-comparisons   - Generate comparison analyses"
 	@echo "  simple           - Generate simple fragmentation analysis (legacy)"
 	@echo "  compare          - Generate A/B comparison (legacy)"
 	@echo "  clean            - Remove generated PNG files"
 	@echo "  clean-all        - Remove all generated and backup files"
+	@echo "  clean-data       - Remove extracted data files"
+	@echo "  clean-everything - Remove all generated and extracted files"
 	@echo "  help             - Show this help message"
 	@echo ""
-	@echo "For faster generation, use: make fast or make -j4 pw-analysis"
+	@echo "Note: All targets now run in parallel by default using all CPU cores"
 	@echo "Generated files will be in: $(OUTPUT_DIR)/ and $(IMAGES_DIR)/"
 
 # Debug target to show detected configurations

@@ -57,31 +57,26 @@ The `fragmentation_tracker.py` is an eBPF script which tracks all tracepoints wi
 
 ## 🚀 Quick Start
 
-To demo, just run:
+Just run:
 
 ```bash
 make
 ```
 
-For fast parallel writeback analysis (RECOMMENDED):
+This will:
+1. Automatically extract data from `pw-data-v1.tar.gz` (if needed)
+2. Generate all visualizations using **all available CPU cores** in parallel
+3. Copy results to the `images/` directory
+
+For specific analyses:
 
 ```bash
-make fast      # Uses 4 cores in parallel
-# or
-make superfast # Uses all available cores
-# or
-make -j8 pw-analysis  # Specify number of cores
+make pw-analysis  # Run only parallel writeback analysis (also parallel)
+make simple       # Run only simple demo analysis
+make compare      # Run only A/B comparison demo
 ```
 
-For sequential generation:
-
-```bash
-make pw-analysis
-```
-
-**Note**: The data will be automatically extracted from `pw-data-v1.tar.gz` on first run. This ensures the repository stays within GitHub's file size limits.
-
-This will generate comprehensive visualizations for all configurations in the `pw-data-v1/` directory.
+**Note**: All targets now run in parallel by default using all CPU cores for maximum speed. The data is automatically extracted from the compressed archive on first run to stay within GitHub's file size limits.
 
 ## 📈 Visualization Output
 

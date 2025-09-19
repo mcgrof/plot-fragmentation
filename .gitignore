@@ -10,9 +10,7 @@ output/
 !images/*.png
 
 # Extracted data (uncompressed from tarball)
-pw-data-v1/*.json
-pw-data-v1/*.txt
-pw-data-v1/*.log
+pw-data-v1/fragmentation/
 
 # Backup files
 *_old.py

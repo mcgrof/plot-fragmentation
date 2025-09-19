@@ -90,6 +90,7 @@ def extract_all_metrics(events):
 def get_node_label(filename):
     """Extract clean node label from filename."""
     name = Path(filename).stem
+    name = name.replace("_fragmentation_data_interim", "")
     name = name.replace("_fragmentation_data", "")
 
     # Clean up common prefixes
@@ -635,8 +636,8 @@ def generate_all_comparisons(monitoring_dir):
         print(f"Fragmentation directory not found: {frag_dir}")
         return []
 
-    # Find all fragmentation data files
-    data_files = sorted(frag_dir.glob("*_fragmentation_data.json"))
+    # Find all fragmentation data files (including interim files)
+    data_files = sorted(frag_dir.glob("*_fragmentation_data*.json"))
 
     if not data_files:
         print("No fragmentation data files found")

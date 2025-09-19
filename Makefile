@@ -2,7 +2,7 @@
 # Generates visualization PNGs for all fragmentation data
 
 # Directories
-PW_DATA_DIR = pw-data-v1
+PW_DATA_DIR = pw-data-v1/fragmentation
 OUTPUT_DIR = output
 IMAGES_DIR = images
 
@@ -20,7 +20,7 @@ else
     NEED_EXTRACT = no
 endif
 
-# Find all JSON data files in pw-data-v1
+# Find all JSON data files in pw-data-v1/fragmentation
 PW_JSON_FILES := $(wildcard $(PW_DATA_DIR)/*_fragmentation_data_interim.json)
 PW_CONFIGS := $(patsubst $(PW_DATA_DIR)/%_fragmentation_data_interim.json,%,$(PW_JSON_FILES))
 
@@ -47,8 +47,8 @@ all-targets: pw-analysis-targets simple compare
 check-data:
 	@if [ ! -f $(PW_DATA_DIR)/pw2-xfs-reflink-4k_fragmentation_data_interim.json ]; then \
 		echo "Extracting data from $(PW_DATA_ARCHIVE)..."; \
-		mkdir -p $(PW_DATA_DIR); \
-		tar -xzf $(PW_DATA_ARCHIVE) -C $(PW_DATA_DIR); \
+		mkdir -p pw-data-v1; \
+		tar -xzf $(PW_DATA_ARCHIVE) -C pw-data-v1; \
 		echo "Data extracted successfully"; \
 	fi
 
@@ -73,8 +73,8 @@ compare:
 extract-data:
 	@if [ "$(NEED_EXTRACT)" = "yes" ] || [ ! -d $(PW_DATA_DIR) ] || [ -z "$$(ls -A $(PW_DATA_DIR)/*.json 2>/dev/null)" ]; then \
 		echo "Extracting data from $(PW_DATA_ARCHIVE)..."; \
-		mkdir -p $(PW_DATA_DIR); \
-		tar -xzf $(PW_DATA_ARCHIVE) -C $(PW_DATA_DIR); \
+		mkdir -p pw-data-v1; \
+		tar -xzf $(PW_DATA_ARCHIVE) -C pw-data-v1; \
 		echo "Data extracted successfully"; \
 	else \
 		echo "Data already extracted"; \
@@ -191,9 +191,7 @@ clean-all: clean
 
 clean-data:
 	@echo "Cleaning extracted data files..."
-	@rm -f $(PW_DATA_DIR)/*.json
-	@rm -f $(PW_DATA_DIR)/*.txt
-	@rm -f $(PW_DATA_DIR)/*.log
+	@rm -rf pw-data-v1/fragmentation
 
 clean-everything: clean-all clean-data
 	@echo "All generated and extracted files removed"
